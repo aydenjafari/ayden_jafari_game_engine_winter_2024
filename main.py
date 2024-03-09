@@ -9,7 +9,9 @@ from random import randint
 from os import path
 from time import sleep
 
-# 
+
+# goals force field, moving walls, increased speed, maze, levels
+
 class Game:
     def __init__(self):
         pg.init()
@@ -73,7 +75,7 @@ class Game:
         self.screen.fill(BGCOLOR)
         self.draw_grid()
         self.all_sprites.draw(self.screen)
-        self.draw_text(self.screen, "Hello world...", 42, BLACK, 1, 1)
+        self.draw_text(self.screen, "WELCOME PLAYER 12345", 42, BLACK, 1, 1)
 
         pg.display.flip()
 
