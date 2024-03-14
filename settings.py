@@ -1,21 +1,22 @@
-# This file was created by: Ayden Jafari
-TITLE = "cool games"
+#This file was created by Ayden Jafari
+
+WIDTH = 1024
+HEIGHT = 768
 
 FPS = 30
 
-PLAYER_SPEED = 300
+TITLE = "My Fun Game"
 
-#32 grids wide
-WIDTH = 1024
-#24 grids high
-HEIGHT = 768
 TILESIZE = 32
 
-SKYBLUE = (111, 186, 234)
 
 BLACK = (0,0,0)
-LIGHTGREY = (100,100,100)
-GREEN = (0, 255, 0)
-YELLOW = (255, 255, 0)
-RED = (255, 0, 0)
-BGCOLOR = SKYBLUE
+WHITE = (255,255,255)
+BGCOLOR = (0,0,0)
+GREEN = (0,255,0)
+BLUE = (0,0,255)
+YELLOW = (255,255,0)
+LIGHTGREY = (75,75,75)
+
+# Player settings
+PLAYER_SPEED = 300
