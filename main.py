@@ -69,12 +69,13 @@ class Game:
         sys.exit()
 
     def update(self):
-        self.all_sprites.update()
-        self.obstacles.update()  # Update obstacles
+        if not self.game_over:  # Only update if the game is not over
+            self.all_sprites.update()
+            self.obstacles.update()
 
-        # Check collision with obstacles
-        if pg.sprite.spritecollideany(self.player, self.obstacles):
-            self.game_over = True
+            # Check collision with obstacles
+            if pg.sprite.spritecollideany(self.player, self.obstacles):
+                self.restart_game()
 
     def draw_grid(self):
         for x in range(0, WIDTH, TILESIZE):
@@ -94,7 +95,7 @@ class Game:
         self.screen.fill(BGCOLOR)
         self.draw_grid()
         self.all_sprites.draw(self.screen)
-        self.obstacles.draw(self.screen)  # Draw obstacles
+        self.obstacles.draw(self.screen)
         if not self.game_over:
             self.draw_text(self.screen, f"Score: {self.player.moneybag}", 32, BLUE, 1, 1)
             time_left = max(self.time_limit - (time.time() - self.start_time), 0)
@@ -126,10 +127,11 @@ class Obstacle(pg.sprite.Sprite):
         if self.rect.bottom > HEIGHT or self.rect.top < 0:
             self.direction *= -1  # Change direction if hitting the top or bottom
 
-
 # Instantiate the game
 g = Game()
 while True:
     g.new()
     g.run()
+
+
 
