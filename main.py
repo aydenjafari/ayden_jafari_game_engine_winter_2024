@@ -28,6 +28,7 @@ class Game:
         self.all_sprites = pg.sprite.Group()
         self.walls = pg.sprite.Group()
         self.coins = pg.sprite.Group()
+        self.obstacles = pg.sprite.Group()  # Group for obstacles
         for row, tiles in enumerate(self.map_data):
             for col, tile in enumerate(tiles):
                 if tile == '1':
@@ -36,6 +37,8 @@ class Game:
                     self.player = Player(self, col, row)
                 if tile == 'C':
                     Coin(self, col, row)
+                if tile == 'O':  # Add obstacle
+                    Obstacle(self, col, row)
 
     def run(self):
         self.playing = True
@@ -67,6 +70,11 @@ class Game:
 
     def update(self):
         self.all_sprites.update()
+        self.obstacles.update()  # Update obstacles
+
+        # Check collision with obstacles
+        if pg.sprite.spritecollideany(self.player, self.obstacles):
+            self.game_over = True
 
     def draw_grid(self):
         for x in range(0, WIDTH, TILESIZE):
@@ -86,12 +94,42 @@ class Game:
         self.screen.fill(BGCOLOR)
         self.draw_grid()
         self.all_sprites.draw(self.screen)
+        self.obstacles.draw(self.screen)  # Draw obstacles
         if not self.game_over:
-            self.draw_text(self.screen, f"Score: {self.player.moneybag}", 32, WHITE, 1, 1)
+            self.draw_text(self.screen, f"Score: {self.player.moneybag}", 32, BLUE, 1, 1)
             time_left = max(self.time_limit - (time.time() - self.start_time), 0)
-            self.draw_text(self.screen, f"Time left: {int(time_left)}", 32, WHITE, 1, 2)
+            self.draw_text(self.screen, f"Time left: {int(time_left)}", 32, BLUE, 1, 2)
         else:
-            if self.player.moneybag >= 50:
-                self.draw_text(self.screen, "You Win!", 64, WHITE, WIDTH // 2, HEIGHT // 2)
-            else:
-                self.draw_text(self.scree
+            self.draw_text(self.screen, "Game Over", 64, WHITE, WIDTH // 2, HEIGHT // 2)
+        pg.display.flip()
+
+    def events(self):
+        for event in pg.event.get():
+            if event.type == pg.QUIT:
+                self.quit()
+
+class Obstacle(pg.sprite.Sprite):
+    def __init__(self, game, x, y):
+        self.groups = game.all_sprites, game.obstacles
+        pg.sprite.Sprite.__init__(self, self.groups)
+        self.game = game
+        self.image = pg.Surface((TILESIZE, TILESIZE))
+        self.image.fill(BLUE)  # Change color as needed
+        self.rect = self.image.get_rect()
+        self.rect.x = x * TILESIZE
+        self.rect.y = y * TILESIZE
+        self.speed = 2  # Speed of the obstacle
+        self.direction = 1  # Initial direction (1 for down, -1 for up)
+
+    def update(self):
+        self.rect.y += self.speed * self.direction
+        if self.rect.bottom > HEIGHT or self.rect.top < 0:
+            self.direction *= -1  # Change direction if hitting the top or bottom
+
+
+# Instantiate the game
+g = Game()
+while True:
+    g.new()
+    g.run()
+
