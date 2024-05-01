@@ -1,8 +1,7 @@
-# #This file was created by Ayden Jafari
+# This file was created by Ayden Jafari
 
-# #Import necessary libraries
+# Final Goal: Create different levels, add speed power-up boost, more or bigger enemies going horizontally, health bar
 
-# # Final Goal: Create a power-up which will speed my player up and give him immunity for 3 seconds The power should look like a monster energy drink animated sprite.
 
 import pygame as pg
 from settings import *
@@ -13,41 +12,84 @@ from os import path
 import time
 
 
-class Obstacles(pg.sprite.Sprite):  # Changed class name to Obstacles
+# class Teleport(pg.sprite.Sprite):
+#     def __init__(self, game, x, y):
+#         super().__init__()
+#         self.groups = game.all_sprites, game.teleport
+#         pg.sprite.Sprite.__init__(self, self.groups)
+#         self.game = game
+#         self.image = pg.Surface((TILESIZE, TILESIZE))
+#         self.image.fill(NAVY)
+#         self.rect = self.image.get_rect()
+#         self.rect.x = x * TILESIZE
+#         self.rect.y = y * TILESIZE
+
+#     def update(self):
+#         # Check for collision with player
+#         if pg.sprite.collide_rect(self, self.game.player):
+#             # Teleport the player up 3 spaces from their current position
+#             self.game.player.rect.y -= 2 * TILESIZE  # Move up 3 tiles
+
+
+
+class Enemy(pg.sprite.Sprite):
     def __init__(self, game, x, y):
-        # Assigning the groups for sprites
-        self.groups = game.all_sprites, game.obstacles
-        # Initialize obstacle
+        super().__init__()
+        self.groups = game.all_sprites, game.enemy
         pg.sprite.Sprite.__init__(self, self.groups)
         self.game = game
-        # Creating filling for obstacle
         self.image = pg.Surface((TILESIZE, TILESIZE))
-        # color
-        self.image.fill(RED)
-        # fill
+        self.image.fill(NEON)
         self.rect = self.image.get_rect()
-        # position
         self.rect.x = x * TILESIZE
         self.rect.y = y * TILESIZE
-        # speed
-        self.speed = 2
-        # initial direction
+        self.speed = 5
         self.direction = 1
+
+    def update(self):
+        self.rect.x += self.speed * self.direction
+        if self.rect.right > WIDTH or self.rect.left < 0:
+            self.direction *= -1
+
+        # Check for collision with player
+        if pg.sprite.collide_rect(self, self.game.player):
+            self.game.quit()  # Quit the game if collision occurs
+
+
+class Obstacle(pg.sprite.Sprite):
+    def __init__(self, game, x, y):
+        super().__init__()
+        self.groups = game.all_sprites, game.obstacles
+        pg.sprite.Sprite.__init__(self, self.groups)
+        self.game = game
+        self.image = pg.Surface((TILESIZE, TILESIZE))
+        self.image.fill(RED)
+        self.rect = self.image.get_rect()
+        self.rect.x = x * TILESIZE
+        self.rect.y = y * TILESIZE
+        self.speed = 2
+        self.direction = 1  
+
+    def update(self):
+        self.rect.y += self.speed * self.direction
+        if self.rect.bottom > HEIGHT or self.rect.top < 0:
+            self.direction *= -1
 
 
 class PowerUp(pg.sprite.Sprite):
     def __init__(self, game, x, y):
         super().__init__()
+        self.groups = game.all_sprites, game.powerups
+        pg.sprite.Sprite.__init__(self, self.groups)
         self.game = game
         self.image = pg.Surface((TILESIZE, TILESIZE))
-        self.image.fill(YELLOW)  # Color of the power-up
+        self.image.fill(NEON)
         self.rect = self.image.get_rect()
         self.rect.x = x * TILESIZE
         self.rect.y = y * TILESIZE
 
     def apply_powerup(self, player):
-        # Apply power-up effect to the player
-        player.velocity += 50  # Increase player's velocity by 50 (adjust as needed)
+        player.speed += 1
 
 
 class Game:
@@ -55,12 +97,11 @@ class Game:
         pg.init()
         self.screen = pg.display.set_mode((WIDTH, HEIGHT))
         pg.display.set_caption(TITLE)
-        self.clock = pg.time.Clock()  # creates clock
+        self.clock = pg.time.Clock()
         self.load_data()
-        self.start_time = time.time()  # should initiate timer
-        self.time_limit = 60  # Timer begins with a minute
-        self.game_over = False  # tracks if game is over
-        self.powerups = pg.sprite.Group()  # Group for power-ups
+        self.start_time = time.time()
+        self.time_limit = 60
+        self.game_over = False
 
     def load_data(self):
         game_folder = path.dirname(__file__)
@@ -73,26 +114,31 @@ class Game:
         self.all_sprites = pg.sprite.Group()
         self.walls = pg.sprite.Group()
         self.coins = pg.sprite.Group()
-        self.obstacles = pg.sprite.Group()  # Grouping obstacles and adding them to game
+        self.obstacles = pg.sprite.Group()
+        self.powerups = pg.sprite.Group()
+        self.enemy = pg.sprite.Group()
+        self.teleport = pg.sprite.Group()
         for row, tiles in enumerate(self.map_data):
             for col, tile in enumerate(tiles):
                 if tile == '1':
                     Wall(self, col, row)
-                if tile == 'P':
+                elif tile == 'P':
                     self.player = Player(self, col, row)
-                if tile == 'C':
+                elif tile == 'C':
                     Coin(self, col, row)
-                if tile == 'O':  # Add obstacle with letter O
-                    Obstacles(self, col, row)  # Corrected class name to Obstacles
-
-        # Spawn power-up randomly
-        if randint(1, 100) <= 10:  # Adjust probability as needed (e.g., 10% chance)
-            PowerUp(self, randint(0, WIDTH // TILESIZE), randint(0, HEIGHT // TILESIZE))
+                elif tile == 'O':
+                    Obstacle(self, col, row)
+                elif tile == 'B':
+                    PowerUp(self, col, row)
+                elif tile == 'E':
+                    Enemy(self, col, row)
+                elif tile == 'T':
+                    Teleport(self, col, row)
 
     def run(self):
         self.playing = True
         while self.playing:
-            self.dt = self.clock.tick(FPS) / 1000  # Keeps track of time
+            self.dt = self.clock.tick(FPS) / 1000
             self.events()
             self.update()
             self.draw()
@@ -104,31 +150,29 @@ class Game:
         self.game_over = True
         self.draw()
 
-    def restart_game(self):  # restart game if money is full or time is out
-        self.start_time = time.time()  # initiate timer after reset
-        self.player.moneybag = 0  # reset moneybag
-        self.new()  # reset player
+    def restart_game(self):
+        self.start_time = time.time()
+        self.player.moneybag = 0
+        self.new()
 
-    def win_game(self):  # game is won if player stops playing and money is 99
+    def win_game(self):
         self.playing = False
         self.game_over = True
 
-    def quit(self):  # game is quit
+    def quit(self):
         pg.quit()
         sys.exit()
 
     def update(self):
-        if not self.game_over:  # Only update if the game is still being played
+        if not self.game_over:
             self.all_sprites.update()
             self.obstacles.update()
-            self.powerups.update()  # Update power-ups
-
-            # Check for collisions with power-ups
+            self.powerups.update()
+            self.enemy.update()
+            self.teleport.update()
             powerup_hits = pg.sprite.spritecollide(self.player, self.powerups, True)
             for powerup in powerup_hits:
-                powerup.draw_powerup(self.player)
-
-            # if player collides with obstacles reset money timer and player position
+                powerup.apply_powerup(self.player)
             if pg.sprite.spritecollideany(self.player, self.obstacles):
                 self.restart_game()
 
@@ -151,14 +195,14 @@ class Game:
         self.draw_grid()
         self.all_sprites.draw(self.screen)
         self.obstacles.draw(self.screen)
-        self.powerups.draw(self.screen)  # Draw power-ups
-        if not self.game_over:  # if game is still being played each money adds 1 while each second decreases
+        self.powerups.draw(self.screen)
+        if not self.game_over:
             self.draw_text(self.screen, f"Score: {self.player.moneybag}", 32, RED, 1, 1)
             time_left = max(self.time_limit - (time.time() - self.start_time), 0)
             self.draw_text(self.screen, f"Time left: {int(time_left)}", 32, RED, 1, 2)
         else:
             self.draw_text(self.screen, "Game Over", 64, WHITE, WIDTH // 2, HEIGHT // 2)
-        pg.display.flip()  # if not game playing, reset game
+        pg.display.flip()
 
     def events(self):
         for event in pg.event.get():
@@ -166,15 +210,11 @@ class Game:
                 self.quit()
 
 
-# Add this at the end to start the game
+# Start game
 if __name__ == "__main__":
     g = Game()
     while True:
         g.new()
         g.run()
-
-
-
-
 
 
