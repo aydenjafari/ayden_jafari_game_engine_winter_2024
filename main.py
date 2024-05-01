@@ -30,6 +30,24 @@ import time
 #             # Teleport the player up 3 spaces from their current position
 #             self.game.player.rect.y -= 2 * TILESIZE  # Move up 3 tiles
 
+class Teleport(pg.sprite.Sprite):
+    def __init__(self, game, x, y):
+        super().__init__()
+        self.groups = game.all_sprites, game.teleport
+        pg.sprite.Sprite.__init__(self, self.groups)
+        self.game = game
+        self.image = pg.Surface((TILESIZE, TILESIZE))
+        self.image.fill(NAVY)
+        self.rect = self.image.get_rect()
+        self.rect.x = x * TILESIZE
+        self.rect.y = y * TILESIZE
+
+    def update(self):
+        # Check for collision with player
+        if pg.sprite.collide_rect(self, self.game.player):
+            # Teleport the player up 3 spaces from their current position
+            self.game.player.rect.y -= 3 * TILESIZE  # Move up 3 tiles
+            self.game.player.teleported = True
 
 
 class Enemy(pg.sprite.Sprite):
