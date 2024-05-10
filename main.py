@@ -11,25 +11,6 @@ import sys
 from os import path
 import time
 
-
-# class Teleport(pg.sprite.Sprite):
-#     def __init__(self, game, x, y):
-#         super().__init__()
-#         self.groups = game.all_sprites, game.teleport
-#         pg.sprite.Sprite.__init__(self, self.groups)
-#         self.game = game
-#         self.image = pg.Surface((TILESIZE, TILESIZE))
-#         self.image.fill(NAVY)
-#         self.rect = self.image.get_rect()
-#         self.rect.x = x * TILESIZE
-#         self.rect.y = y * TILESIZE
-
-#     def update(self):
-#         # Check for collision with player
-#         if pg.sprite.collide_rect(self, self.game.player):
-#             # Teleport the player up 3 spaces from their current position
-#             self.game.player.rect.y -= 2 * TILESIZE  # Move up 3 tiles
-
 class Teleport(pg.sprite.Sprite):
     def __init__(self, game, x, y):
         super().__init__()
@@ -94,20 +75,6 @@ class Obstacle(pg.sprite.Sprite):
             self.direction *= -1
 
 
-class PowerUp(pg.sprite.Sprite):
-    def __init__(self, game, x, y):
-        super().__init__()
-        self.groups = game.all_sprites, game.powerups
-        pg.sprite.Sprite.__init__(self, self.groups)
-        self.game = game
-        self.image = pg.Surface((TILESIZE, TILESIZE))
-        self.image.fill(NEON)
-        self.rect = self.image.get_rect()
-        self.rect.x = x * TILESIZE
-        self.rect.y = y * TILESIZE
-
-    def apply_powerup(self, player):
-        player.speed += 1
 
 
 class Game:
@@ -118,7 +85,7 @@ class Game:
         self.clock = pg.time.Clock()
         self.load_data()
         self.start_time = time.time()
-        self.time_limit = 60
+        self.time_limit = 90
         self.game_over = False
 
     def load_data(self):
@@ -196,9 +163,9 @@ class Game:
 
     def draw_grid(self):
         for x in range(0, WIDTH, TILESIZE):
-            pg.draw.line(self.screen, BLUE, (x, 0), (x, HEIGHT))
+            pg.draw.line(self.screen, BLACK, (x, 0), (x, HEIGHT))
         for y in range(0, HEIGHT, TILESIZE):
-            pg.draw.line(self.screen, RED, (0, y), (WIDTH, y))
+            pg.draw.line(self.screen, BLACK, (0, y), (WIDTH, y))
 
     def draw_text(self, surface, text, size, color, x, y):
         font_name = pg.font.match_font('arial')
