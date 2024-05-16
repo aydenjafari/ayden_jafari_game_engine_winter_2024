@@ -62,7 +62,7 @@ class Obstacle(pg.sprite.Sprite):
         pg.sprite.Sprite.__init__(self, self.groups)
         self.game = game
         self.image = pg.Surface((TILESIZE, TILESIZE))
-        self.image.fill(RED)
+        self.image.fill(NEON)
         self.rect = self.image.get_rect()
         self.rect.x = x * TILESIZE
         self.rect.y = y * TILESIZE
@@ -75,29 +75,36 @@ class Obstacle(pg.sprite.Sprite):
             self.direction *= -1
 
 
-class Object(pg.sprite.Sprite):
+class Mob(pg.sprite.Sprite):
     def __init__(self, game, x, y):
         super().__init__()
-        self.groups = game.all_sprites, game.object
+        self.groups = game.all_sprites, game.mob
         pg.sprite.Sprite.__init__(self, self.groups)
         self.game = game
         self.image = pg.Surface((TILESIZE, TILESIZE))
-        self.image.fill(RED)
+        self.image.fill(NEON)
         self.rect = self.image.get_rect()
         self.rect.x = x * TILESIZE
         self.rect.y = y * TILESIZE
         self.speed = 2
-        self.direction = 1  
+        self.direction_x = 1  # Horizontal
+        self.direction_y = 1  # Vertical
 
     def update(self):
-        self.rect.y += self.speed * self.direction
-        if self.rect.bottom > HEIGHT or self.rect.top < 0:
-            self.direction *= -.05
-
-
-
+        # Horizontal movement
+        self.rect.x += self.speed * self.direction_x
+        # Vertical movement
+        self.rect.y += self.speed * self.direction_y
+        #check boundaries
+        if self.rect.bottom >= HEIGHT or self.rect.top <= 0:
+            self.direction_y *= -1  # Reverse vertical direction
+        #Check boundaries
+        if self.rect.right >= WIDTH or self.rect.left <= 0:
+            self.direction_x *= -1  # Reverse horizontal direction
 
 class Game:
+    
+    
     def __init__(self):
         pg.init()
         self.screen = pg.display.set_mode((WIDTH, HEIGHT))
@@ -120,9 +127,10 @@ class Game:
         self.walls = pg.sprite.Group()
         self.coins = pg.sprite.Group()
         self.obstacles = pg.sprite.Group()
-        self.powerups = pg.sprite.Group()
         self.enemy = pg.sprite.Group()
         self.teleport = pg.sprite.Group()
+        self.obstacle = pg.sprite.Group()
+        self.mob = pg.sprite.Group()
         for row, tiles in enumerate(self.map_data):
             for col, tile in enumerate(tiles):
                 if tile == '1':
@@ -133,14 +141,12 @@ class Game:
                     Coin(self, col, row)
                 elif tile == 'O':
                     Obstacle(self, col, row)
-                # elif tile == 'B':
-                #     PowerUp(self, col, row)
                 elif tile == 'E':
                     Enemy(self, col, row)
                 elif tile == 'T':
                     Teleport(self, col, row)
-                elif tile == "Z":
-                    Object(self, col, row)
+                elif tile == 'M':
+                    Mob(self, col, row)
 
     def run(self):
         self.playing = True
@@ -174,14 +180,12 @@ class Game:
         if not self.game_over:
             self.all_sprites.update()
             self.obstacles.update()
-            self.powerups.update()
             self.enemy.update()
             self.teleport.update()
-            self.object.update()
-            powerup_hits = pg.sprite.spritecollide(self.player, self.powerups, True)
-            for powerup in powerup_hits:
-                powerup.apply_powerup(self.player)
+            self.mob.update()
             if pg.sprite.spritecollideany(self.player, self.obstacles):
+                self.restart_game()
+            if pg.sprite.spritecollideany(self.player, self.mob):
                 self.restart_game()
 
     def draw_grid(self):
@@ -203,8 +207,6 @@ class Game:
         self.draw_grid()
         self.all_sprites.draw(self.screen)
         self.obstacles.draw(self.screen)
-        self.powerups.draw(self.screen)
-        self.object.draw(self.screen)
         if not self.game_over:
             self.draw_text(self.screen, f"Score: {self.player.moneybag}", 32, RED, 1, 1)
             time_left = max(self.time_limit - (time.time() - self.start_time), 0)
